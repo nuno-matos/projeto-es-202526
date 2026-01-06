@@ -25,7 +25,7 @@ public class User implements UserDetails {
     private String password;
     private String name;
     private UserRole role;
-
+    //Metodo para verificar roles
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         if(this.role == UserRole.TEACHER) return List.of(new SimpleGrantedAuthority("ROLE_TEACHER"), new SimpleGrantedAuthority("ROLE_STUDENT"));
