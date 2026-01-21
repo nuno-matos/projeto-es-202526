@@ -15,7 +15,7 @@ import pt.estg.projetoes202526.domain.UserRole;
 
 import java.util.Collection;
 import java.util.List;
-
+//test
 @Entity
 @Getter
 @Setter
