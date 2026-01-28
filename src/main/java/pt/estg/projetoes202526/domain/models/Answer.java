@@ -1,18 +1,15 @@
 package pt.estg.projetoes202526.domain.models;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.OneToOne;
 
 @Entity
-@Getter
-@Setter
 public class Answer {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private String text;
+    private String answerText;
+
+    @OneToOne(mappedBy = "answer")
+    private Question question;
 }
