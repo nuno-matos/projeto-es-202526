@@ -9,9 +9,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pt.estg.projetoes202526.domain.dto.ExerciseRegisterDTO;
+import pt.estg.projetoes202526.domain.models.CourseUnit;
 import pt.estg.projetoes202526.domain.models.Exercise;
 import pt.estg.projetoes202526.domain.models.Question;
+import pt.estg.projetoes202526.repositories.CourseUnitRepository;
 import pt.estg.projetoes202526.repositories.ExerciseRepository;
+
+import java.util.HashSet;
 
 @RestController
 @RequestMapping("api/exercise")
@@ -22,8 +26,14 @@ public class ExerciseController {
     @Autowired
     private ExerciseRepository exerciseRepository;
 
+    @Autowired
+    private CourseUnitRepository courseUnitRepository;
+
     @PostMapping("/register")
     public ResponseEntity<?> createExercise(@RequestBody ExerciseRegisterDTO request) {
+        CourseUnit courseUnit = courseUnitRepository.findByName(request.courseUnitName())
+                .orElseThrow(() -> new RuntimeException("Course Unit not found"));
+
         Exercise exercise = new Exercise();
         exercise.setTitle(request.exerciseTitle());
         String description = "description";
@@ -44,6 +54,14 @@ public class ExerciseController {
         });
 
         exerciseRepository.save(exercise);
+
+        if (courseUnit.getExercises() == null) {
+            courseUnit.setExercises(new HashSet<>());
+        }
+        courseUnit.getExercises().add(exercise);
+        courseUnitRepository.save(courseUnit);
+
+        logger.info("Exercise '{}' added to CourseUnit '{}'", exercise.getTitle(), courseUnit.getName());
 
         return ResponseEntity.ok().build();
     }

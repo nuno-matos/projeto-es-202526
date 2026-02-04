@@ -8,11 +8,16 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import pt.estg.projetoes202526.domain.models.CourseUnit;
+import pt.estg.projetoes202526.domain.models.Exercise;
+import pt.estg.projetoes202526.domain.models.Question;
 import pt.estg.projetoes202526.domain.models.Role;
 import pt.estg.projetoes202526.domain.models.User;
 import pt.estg.projetoes202526.repositories.CourseUnitRepository;
+import pt.estg.projetoes202526.repositories.ExerciseRepository;
 import pt.estg.projetoes202526.repositories.RoleRepository;
 import pt.estg.projetoes202526.repositories.UserRepository;
+
+import java.util.HashSet;
 
 @Component
 public class DataLoader implements ApplicationRunner {
@@ -22,11 +27,13 @@ public class DataLoader implements ApplicationRunner {
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final CourseUnitRepository courseUnitRepository;
+    private final ExerciseRepository exerciseRepository;
 
-    public DataLoader(RoleRepository roleRepository, UserRepository userRepository, CourseUnitRepository courseUnitRepository) {
+    public DataLoader(RoleRepository roleRepository, UserRepository userRepository, CourseUnitRepository courseUnitRepository, ExerciseRepository exerciseRepository) {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
         this.courseUnitRepository = courseUnitRepository;
+        this.exerciseRepository = exerciseRepository;
     }
 
     private void addRolesToDB() {
@@ -98,6 +105,35 @@ public class DataLoader implements ApplicationRunner {
         userRepository.save(teacher);
     }
 
+    private void createTestExercise() {
+        if (exerciseRepository.count() > 0) return;
+
+        CourseUnit programming = courseUnitRepository
+                .findByName("Introduction to Programming")
+                .orElseThrow();
+
+        Exercise ex = new Exercise("Java Basics", "Exercício introdutório sobre classes e objetos.");
+
+        Question q1 = new Question("Criar a classe Carro", "Grupo 1", ex);
+        Question q2 = new Question("Definir atributos privados", "Grupo 1", ex);
+        Question q3 = new Question("Implementar Getters e Setters", "Grupo 2", ex);
+
+        ex.getQuestions().add(q1);
+        ex.getQuestions().add(q2);
+        ex.getQuestions().add(q3);
+
+        exerciseRepository.save(ex);
+
+        if (programming.getExercises() == null) {
+            programming.setExercises(new HashSet<>());
+        }
+        programming.getExercises().add(ex);
+
+        courseUnitRepository.save(programming);
+
+        logger.info("Created test exercise: Java Basics with ID: " + ex.getId());
+    }
+
     @Override
     @Transactional
     public void run(ApplicationArguments args) throws Exception {
@@ -109,5 +145,8 @@ public class DataLoader implements ApplicationRunner {
         logger.info("Sucess on save course units to DB");
         setUsersToCourseUnits();
         logger.info("Sucess on seting users to courseUnits");
+
+        createTestExercise();
+        logger.info("Success on creating test exercise");
     }
 }
